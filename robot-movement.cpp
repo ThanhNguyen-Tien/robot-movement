@@ -1,26 +1,26 @@
-#include <iostream>
+﻿#include <iostream>
 #include "grid.hpp"
 #include "command.hpp"
 
 int main() {
-    // Input grid size (DIMENSION command)
-    int n;
-    std::cout << "Enter grid dimension (N): ";
-    std::cin >> n;
+	// File Path
+	const std::string filename = "commandsForTesting.txt";
 
-    if (n <= 0) {
-        std::cerr << "Error: Dimension must be greater than 0.\n";
-        return 1;
-    }
+	// Storing all commands to a vector
+	std::vector<Command*> commands = readCommandsFromFile(filename);
 
-    // Execute DIMENSION command
-    DimensionCommand::instance().createGrid(n);
-    MoveCommand::instance().moveCurrsorTo(1, 2);
-    LineToCommand::instance().drawLineToPoint(3, 8);
+	//Handling all Commands
+	for (const auto& command : commands) 
+	{
+		command->execute();
+	}
 
-    // Draw the initial grid
-    std::cout << "Initial grid:\n";
-    Grid::instance().draw();
+	// Free Memory
+	cleanupCommands(commands);
 
-    return 0;
+	// Draw the grid
+	std::cout << "Initial grid:\n";
+	Grid::instance().draw();
+
+	return 0;
 }
