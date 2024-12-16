@@ -41,8 +41,8 @@ public:
 
     void mark(int x, int y, char symbol) {
         if (x >= 0 && x < size_ && y >= 0 && y < size_) {
-            grid_[y][x].symbol = symbol;
-            grid_[y][x].isMarked = true;
+            grid_[x][y].symbol = symbol;
+            grid_[x][y].isMarked = true;
         }
     }
 

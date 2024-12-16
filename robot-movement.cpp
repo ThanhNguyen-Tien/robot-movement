@@ -14,10 +14,9 @@ int main() {
     }
 
     // Execute DIMENSION command
-    DimensionCommand dimCmd(n);
-    dimCmd.execute();
-
-    Grid::instance().mark(1, 1, '+');
+    DimensionCommand::instance().createGrid(n);
+    MoveCommand::instance().moveCurrsorTo(1, 2);
+    LineToCommand::instance().drawLineToPoint(3, 8);
 
     // Draw the initial grid
     std::cout << "Initial grid:\n";
