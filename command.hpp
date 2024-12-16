@@ -80,16 +80,20 @@ private:
         int stepX = (targetX_ > x0) ? 1 : -1;
         int stepY = (targetY_ > y0) ? 1 : -1;
 
+        // error represents the balance shift between the x and y axis
+        // moving follow x-axis -> error decrease
+        // moving follow y-axis -> error increase
         int error = (deltaX > deltaY ? deltaX : -deltaY) / 2;
 
-        while (x0 < targetX_ && y0 == targetY_)
+        while (true) 
         {
             if (!grid.isCellMarked(x0, y0))
             {
                 grid.mark(x0, y0, '+');
             }
 
-            if () break;
+            if (x0 >= targetX_ && y0 >= targetY_) break;
+            //TODO: Handle case x0 > targetX_ || y0 > targetY_
 
             int error2 = error;
 
@@ -105,7 +109,6 @@ private:
                 y0 += stepY;
             }
         }
-
         grid.setCurrentPosition(targetX_, targetY_);
     }
 
