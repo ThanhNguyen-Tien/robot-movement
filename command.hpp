@@ -4,11 +4,16 @@
 #include <fstream>
 #include <sstream>
 
+#define _USE_MATH_DEFINES 1
+#include <math.h>
+
+constexpr int TABLE_SIZE = 360;
+
 // Base class for all commands
 class Command 
 {
 public:
-    virtual void execute() = 0;
+    virtual void execute_() = 0;
 	virtual ~Command() = default;
 };
 
@@ -19,7 +24,7 @@ public:
     DimensionCommand(int size) : dimension_(size) {}
 
 private:
-	void execute() override 
+	void execute_() override 
     {
         dimension_ = dimension_;
 		Grid::instance().setDimension(dimension_);
@@ -36,7 +41,7 @@ public:
     MoveToCommand(int x, int y) : targetX_(x), targetY_(y) {}
 
 private:
-    void execute() override {
+    void execute_() override {
         if (targetX_ < 0 || targetX_ >= Grid::instance().getSize() ||
             targetY_ < 0 || targetY_ >= Grid::instance().getSize()) {
             std::cerr << "Error: Target position (" << targetX_ << ", " << targetY_
@@ -59,7 +64,7 @@ public:
     LineToCommand(int x, int y) : targetX_(x), targetY_(y) {}
 
 private:
-    void execute() override 
+    void execute_() override 
     {
         Grid& grid = Grid::instance();
 
@@ -87,10 +92,7 @@ private:
 
         while (true) 
         {
-            if (!grid.isCellMarked(x0, y0))
-            {
-                grid.mark(x0, y0, '+');
-            }
+            grid.mark(x0, y0, '+');
 
             if (x0 >= targetX_ && y0 >= targetY_) break;
             //TODO: Handle case x0 > targetX_ || y0 > targetY_
@@ -115,6 +117,55 @@ private:
 private:
     int targetX_;
     int targetY_;
+};
+
+// CircleTo Command
+class CircleToCommand : public Command {
+public:
+    CircleToCommand(int radius) : radius_(radius) {
+        if (sin_table_.empty() || cos_table_.empty()) {
+            sin_table_ = generateSinTable_();
+            cos_table_ = generateCosTable_();
+        }
+    }
+
+    void execute_() override {
+        Grid& grid = Grid::instance(); // Lấy instance của Grid
+        auto center = grid.getCurrentPosition(); // Lấy vị trí tâm hình tròn
+
+        int xc = center.x;
+        int yc = center.y;
+
+        for (int angle = 0; angle < TABLE_SIZE; ++angle) {
+            int x = static_cast<int>(round(xc + cos_table_[angle]));
+            int y = static_cast<int>(round(yc + sin_table_[angle]));
+
+            grid.mark(x, y, '+');
+        }
+    }
+
+private:
+    int radius_;
+    std::vector<int> sin_table_; // Lookup Table
+    std::vector<int> cos_table_; // Lookup Table
+
+    std::vector<int> generateSinTable_() {
+        std::vector<int> sinTable(TABLE_SIZE);
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            double angle = 2 * M_PI * i / (double)TABLE_SIZE;
+            sinTable[i] = static_cast<int>(round(radius_ * sin(angle)));
+        }
+        return sinTable;
+    }
+
+    std::vector<int> generateCosTable_() {
+        std::vector<int> cosTable(TABLE_SIZE);
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            double angle = 2 * M_PI * i / (double)TABLE_SIZE;
+            cosTable[i] = static_cast<int>(round(radius_ * cos(angle)));
+        }
+        return cosTable;
+    }
 };
 
 std::vector<Command*> readCommandsFromFile(const std::string& filename) 
@@ -152,6 +203,12 @@ std::vector<Command*> readCommandsFromFile(const std::string& filename)
             int x, y;
             stream >> x >> y;
             commands.push_back(new LineToCommand(x, y));
+        }
+        else if (command == "CIRCLE_TO")
+        {
+            int r;
+            stream >> r;
+            commands.push_back(new CircleToCommand(r));
         }
         else 
         {

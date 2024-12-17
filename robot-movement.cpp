@@ -12,7 +12,7 @@ int main() {
 	//Handling all Commands
 	for (const auto& command : commands) 
 	{
-		command->execute();
+		command->execute_();
 	}
 
 	// Free Memory
